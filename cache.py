@@ -16,8 +16,7 @@ class cache:
         self.numSets = int(self.cacheSize / (self.cacheMap * self.blockSize))
 
         #Create a 2D array of cacheline elements
-        cacheLine = {'valid':0, 'tag':0}
-        self.cache = [[cacheLine for x in range(self.cacheMap)] for y in range(self.numSets)]
+        self.cache = [[{'valid':0, 'tag':0} for x in range(self.cacheMap)] for y in range(self.numSets)]
 
         #Create a 2D array for the lru
         self.lru = [[0 for x in range(self.cacheMap)] for y in range(self.numSets)]
@@ -110,3 +109,5 @@ class cache:
                 self.cache[curr_set][index]['valid'] = 1
 
         return cacheHit
+
+    def display_cache(self):
