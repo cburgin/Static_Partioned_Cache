@@ -13,9 +13,10 @@ rw_options = ['read', 'write']
 crit_options = ['hi', 'low']
 #prior_options = range(0,4)
 #taskid_options = range(0,4)
-# 64M, 128M, 256M, 512M,
-addr_range_options = [0x04000000, 0x08000000, 0x10000000, 0x20000000]
-
+# 16M, 32M, 64M, 128M, 256M, 512M,
+#addr_range_options = [0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000, 0x20000000]
+# All 512M
+addr_range_options = [0x20000000]
 #options_list = [rw_options, procid_options]
 
 # task map is dict with key = taskid, value = memory space
@@ -38,11 +39,20 @@ def build_rand_element(task_map):
     element.append(random.choice(range(task_map[tmp_taskid])))
     return element
 
+def build_opposite_element(element):
+    if element[0] == 'read':
+        return ['write', element[1], element[2]]
+    else:
+        return ['read', element[1], element[2]]
+
 # Build random trace
 def build_random_trace(length, task_map):
     trace = []
     for i in range(length):
-        trace.append(build_rand_element(task_map))
+        element = build_rand_element(task_map)
+        trace.append(element)
+        trace.append(build_opposite_element(element))
+    random.shuffle(trace)
     return trace
 
 # Takes trace_list and returns printable string of Trace
@@ -68,11 +78,11 @@ def pretty_task_map(task_map):
 # Do everything
 def main():
     # Create task_map dict
-    task_map = build_task_map(4)
-    trace = build_random_trace(25, task_map)
+    task_map = build_task_map(8)
+    trace = build_random_trace(2500, task_map)
     task_addrs = pretty_task_map(task_map)
     output = pretty_trace(trace)
-    f = open('sample.txt','w')
+    f = open('trace_8_512_2500.txt','w')
     f.write(task_addrs)
     f.write(output)
     f.close()
