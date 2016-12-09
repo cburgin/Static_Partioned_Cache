@@ -78,14 +78,46 @@ def translate_trace_file(translate_table, virt_trace):
 # Run a physical trace through the cache, report metrics
 def run_trace(trace):
     import cache
-
+    results = {}
     myCache = cache.cache()
 
-    
+    # for every element in the trace
+    #   1. grab ID
+    #   2. pass RW and Addr to cache
+    #   3. Get hit/miss
+    #   4. Record Results
+    for element in trace:
+        taskid = element[0]
+        if taskid not in results.keys():
+            results[taskid] = {'total':0,'hit':0,'miss':0}
+        results[taskid]['total'] += 1
+
+        if myCache.simulate_element(element[1:]):
+            results[taskid]['hit'] += 1
+        else
+            results[taskid]['miss'] += 1
+
+    return results
+
+
 
 # Kick off the show
 def main():
-    pass
+    # Parse input trace
+    task_map,trace = parse_trace_file('sample.txt')
+
+    # Build translation table
+    translate_table = build_translation_table(task_map,0x80000000)
+
+    # Use translation table to make physical trace
+    phys_trace = translate_trace_file(translate_table, trace)
+
+    # Run trace through cache
+    results = run_trace(phys_trace)
+
+
+
+
 
 if __name__ == '__main__':
     main()
