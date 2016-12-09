@@ -13,8 +13,8 @@ rw_options = ['read', 'write']
 crit_options = ['hi', 'low']
 #prior_options = range(0,4)
 #taskid_options = range(0,4)
-# 128M, 256M, 512M,
-addr_range_options = [0x08000000, 0x10000000, 0x20000000]
+# 64M, 128M, 256M, 512M,
+addr_range_options = [0x04000000, 0x08000000, 0x10000000, 0x20000000]
 
 #options_list = [rw_options, procid_options]
 
@@ -60,7 +60,7 @@ def pretty_trace(trace):
 
 def pretty_task_map(task_map):
     output = ""
-    format_str = "{} {:x},"
+    format_str = "{} {:#010x},"
     for i in task_map.keys():
         output += format_str.format(i,task_map[i])
     return output[:-1] + "\n"
