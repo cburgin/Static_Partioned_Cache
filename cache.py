@@ -111,3 +111,4 @@ class cache:
         return cacheHit
 
     def display_cache(self):
+        pass

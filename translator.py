@@ -83,7 +83,7 @@ def run_trace(trace):
     import cache
     results = {}
     size = 4096
-    block_size = 1
+    block_size = 8
     mapping = 1
     myCache = cache.cache(size, block_size, mapping)
 
@@ -111,7 +111,7 @@ def run_trace(trace):
 def main():
 
     # Parse input trace
-    task_map,trace = parse_trace_file('hand_sample.txt')
+    task_map,trace = parse_trace_file('sample.txt')
 
     # Build translation table
     translate_table = build_translation_table(task_map,0x80000000)
