@@ -24,3 +24,9 @@ write,3,0x1ca44cef
 read,3,0x0c703983
 read,3,0x1d2b0728
 write,1,0x0da4e6d1
+read,3,0x1d2b0728
+read,3,0x1d2b0728
+read,3,0x1d2b0728
+write,1,0x0981fdd6
+write,1,0x0981fdd6
+write,1,0x0981fdd6

@@ -18,6 +18,9 @@
 # Read out stats from cache
 # Print report
 
+import pprint
+
+
 # parse the trace file from generator
 # return dict task_map and list trace
 def parse_trace_file(filename):
@@ -79,7 +82,10 @@ def translate_trace_file(translate_table, virt_trace):
 def run_trace(trace):
     import cache
     results = {}
-    myCache = cache.cache()
+    size = 4096
+    block_size = 1
+    mapping = 1
+    myCache = cache.cache(size, block_size, mapping)
 
     # for every element in the trace
     #   1. grab ID
@@ -94,7 +100,7 @@ def run_trace(trace):
 
         if myCache.simulate_element(element[1:]):
             results[taskid]['hit'] += 1
-        else
+        else:
             results[taskid]['miss'] += 1
 
     return results
@@ -103,8 +109,9 @@ def run_trace(trace):
 
 # Kick off the show
 def main():
+
     # Parse input trace
-    task_map,trace = parse_trace_file('sample.txt')
+    task_map,trace = parse_trace_file('hand_sample.txt')
 
     # Build translation table
     translate_table = build_translation_table(task_map,0x80000000)
@@ -115,6 +122,7 @@ def main():
     # Run trace through cache
     results = run_trace(phys_trace)
 
+    pprint.pprint(results)
 
 
 
