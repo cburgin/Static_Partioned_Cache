@@ -3,7 +3,6 @@
 # Trace Generator for ECE5984 Cache Project
 # Generates a trace file
 
-
 import random
 import pprint
 import sys
@@ -19,12 +18,12 @@ crit_options = ['hi', 'low']
 # All 512M
 #addr_range_options = [0x20000000]
 # 1 4G
-addr_range_options = [0x100000000]
-#options_list = [rw_options, procid_options]
-
-# task maps for specific cases
-mc_task_map = {0: 0x40000000, 1: 0x40000000, 2: 0x20000000, 3: 0x20000000, \
-                4: 0x10000000, 5: 0x10000000, 6: 0x10000000, 7: 0x10000000}
+# addr_range_options = [0x100000000]
+# #options_list = [rw_options, procid_options]
+#
+# # task maps for specific cases
+# mc_task_map = {0: 0x40000000, 1: 0x40000000, 2: 0x20000000, 3: 0x20000000, \
+#                 4: 0x10000000, 5: 0x10000000, 6: 0x10000000, 7: 0x10000000}
 
 # task map is dict with key = taskid, value = memory space
 def build_task_map(num_tasks):
@@ -109,30 +108,47 @@ def task_map_from_string(map_string):
     print(task_map)
     return task_map
 
-# Do everything
-def main():
-    # Create task_map dict
-    if len(sys.argv) > 3:
-        print('Wrong number of params.')
-        return 1
-    if len(sys.argv) == 3:
-        task_map = task_map_from_string(sys.argv[2])
-        filename = sys.argv[1]
-    elif len(sys.argv) == 2:
-        task_map = build_task_map(8)
-        filename = sys.argv[1]
-    else:
-        task_map = build_task_map(8)
-        filename = 'sample.txt'
-    trace = build_random_trace(2500, task_map)
+#Generates a trace file and returns a file object
+def generate_trace(memory_size, trace_length, task_id, filename):
+    #Parse the task ID mapping and generate a task map
+    task_map = task_map_from_string(task_id)
+
+    #Generate the trace list
+    trace = build_random_trace(trace_length, task_map)
     task_addrs = pretty_task_map(task_map)
     output = pretty_trace(trace)
-    f = open(filename,'w')
-    f.write(task_addrs)
-    f.write(output)
-    f.close()
 
+    #Write to file
+    f = open(filename, 'w')
+    out_file = task_addrs + output
+    f.write(out_file)
+    f.close
+    return out_file
 
-
-if __name__ == '__main__':
-    main()
+# # Do everything
+# def main():
+#     # Create task_map dict
+#     if len(sys.argv) > 3:
+#         print('Wrong number of params.')
+#         return 1
+#     if len(sys.argv) == 3:
+#         task_map = task_map_from_string(sys.argv[2])
+#         filename = sys.argv[1]
+#     elif len(sys.argv) == 2:
+#         task_map = build_task_map(8)
+#         filename = sys.argv[1]
+#     else:
+#         task_map = build_task_map(8)
+#         filename = 'sample.txt'
+#     trace = build_random_trace(2500, task_map)
+#     task_addrs = pretty_task_map(task_map)
+#     output = pretty_trace(trace)
+#     f = open(filename,'w')
+#     f.write(task_addrs)
+#     f.write(output)
+#     f.close()
+#
+#
+#
+# if __name__ == '__main__':
+#     main()
