@@ -114,12 +114,20 @@ def make_stats(results):
         stats = stats + format_str.format(key, results[key]['total'], results[key]['hit'], results[key]['miss'], results[key]['hit']/results[key]['total'])
     return stats
 
+def write_stats_file(filename, stats):
+    root = filename.split('.')[0]
+    results_file = root + '.results'
+    f = open(results_file, 'w')
+    f.write("Trace: " + filename + '\n')
+    f.write(stats)
+    f.close()
 
 # Kick off the show
 def main():
     # Parse input trace
     print('Parsing File...')
-    task_map,trace = parse_trace_file('trace_8_512_2500.txt')
+    filename = 'set_trace_8_MC_2500.txt'
+    task_map,trace = parse_trace_file(filename)
 
     # Build translation table
     system_ram = 0x100000000    # 4G RAM for 32b system
@@ -136,8 +144,10 @@ def main():
 
     pprint.pprint(results)
     print('Making stats...')
-    print(make_stats(results))
-
+    stats = make_stats(results)
+    print(stats)
+    print('Writing File')
+    write_stats_file(filename, stats)
 
 
 
