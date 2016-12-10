@@ -165,7 +165,7 @@ def generate_translation(memory_size, input_trace, filename):
     print(stats)
     print('Writing File')
     print('Filename: '+filename)
-    write_stats_file(filename, stats)
+    write_stats_file('results/'+filename+'.result', stats)
 
 # # Kick off the show
 # def main():
