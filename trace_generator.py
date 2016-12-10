@@ -65,7 +65,7 @@ def build_evil_element_list(task_map):
             if i == 0:
                 tag_base = (base_addr / 8) / (4096 / 8)
                 tag_offset = ((base_addr+offset) / 8) / (4096 / 8)
-                print("tag_base: ",tag_base, "tag_offset",tag_offset)
+                #print("tag_base: ",tag_base, "tag_offset",tag_offset)
     return element_list
 
 
@@ -91,6 +91,17 @@ def build_opposite_element(element):
         return ['write', element[1], element[2]]
     else:
         return ['read', element[1], element[2]]
+
+def build_trace(length, task_map, trace_alg):
+    trace_algorithm = { 'std':build_rand_element_list,
+                        'evil':build_evil_element_list}
+    trace = []
+    for i in range(length):
+        element_list = trace_algorithm[trace_alg](task_map)
+        trace.extend(element_list)
+        #trace.append(build_opposite_element(element))
+    #random.shuffle(trace)
+    return trace
 
 # Build random trace
 def build_random_trace(length, task_map):
@@ -122,24 +133,26 @@ def pretty_task_map(task_map):
         output += format_str.format(i,task_map[i])
     return output[:-1] + "\n"
 
-def task_map_from_string(map_string):
+def task_map_from_string(map_string, shared, memory_size):
     map_list = map_string.split(',')
     task_map = {}
     taskid = 0
     for map_pair in map_list:
         map_pair = map_pair.split('-')
         for i in range(int(map_pair[0])):
-            task_map[taskid]=int(map_pair[1],16)
+            if shared:      # In shared everyone gets the whole memory
+                task_map[taskid] = memory_size
+            else:           # Else they go in their own slot
+                task_map[taskid]=int(map_pair[1],16)
             taskid += 1
     return task_map
 
 #Generates a trace file and returns a file object
-def generate_trace(memory_size, trace_length, task_id, filename):
+def generate_trace(memory_size, trace_length, task_id, filename, trace_alg, shared):
     #Parse the task ID mapping and generate a task map
-    task_map = task_map_from_string(task_id)
-
+    task_map = task_map_from_string(task_id, shared, memory_size)
     #Generate the trace list
-    trace = build_random_trace(trace_length, task_map)
+    trace = build_trace(trace_length, task_map, trace_alg)
     task_addrs = pretty_task_map(task_map)
     output = pretty_trace(trace)
 

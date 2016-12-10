@@ -28,7 +28,7 @@ def main():
     parser.add_argument('-l', '--length', dest='trace_length', metavar='L', type=int,
                         nargs='?', default=2000,
                         help='provide the length of the simulated trace. Default=2000.')
-    parser.add_argument('-t', '--tasids', dest='task_IDs', metavar='T',
+    parser.add_argument('-t', '--taskids', dest='task_IDs', metavar='T',
                         nargs='?', default='8-0x2000000',
                         help='provide the task mapping. Default=8-0x2000000.')
     parser.add_argument('-n', '--name', dest='filename', metavar='N',
@@ -37,13 +37,16 @@ def main():
     parser.add_argument('-s', '--shared', dest='shared',
                         default=False, action='store_true',
                         help='Add Flag to make the cache shared')
+    parser.add_argument('-a', '--tracealgorithm', dest='trace_alg', metavar='A',
+                        nargs='?', default='std',
+                        help='Choose the trace generator algorithm: std, evil')
 
     #Parse the input arguments
     args = parser.parse_args()
     print(args)
 
     #Generate the traces
-    trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename)
+    trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename, args.trace_alg, args.shared)
 
     #Translate the virtual task addresses to the physical memory space. AND simulate the cache
     translator.generate_translation(args.memory_size, trace, args.filename, args.shared)

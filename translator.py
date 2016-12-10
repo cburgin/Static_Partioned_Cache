@@ -175,7 +175,8 @@ def make_stats(results):
     header = 'TaskID Requests     Hits   Misses   Hit Rate\n'
     format_str = '{:>6} {:>8} {:>8} {:>8} {:>10.4f}\n'
     stats = stats + header
-    for key in sorted(results.keys()):
+    # sorted(results.key(), key=int) returns the dict keys in integer order
+    for key in sorted(results.keys(), key=int):
         stats = stats + format_str.format(key, results[key]['total'], results[key]['hit'], results[key]['miss'], results[key]['hit']/float(results[key]['total']))
     return stats
 
