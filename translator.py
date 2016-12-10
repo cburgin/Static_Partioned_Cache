@@ -146,17 +146,6 @@ def write_stats_file(filename, stats):
 def generate_translation(memory_size, input_trace, filename):
     #Parse the File
     print('Parsing File...')
-<<<<<<< HEAD
-    filename = 'traces/trace_8435.trace'
-    task_map,trace = parse_trace_file(filename)
-
-    # Build translation table
-    system_ram = 0x100000000    # 4G RAM for 32b system
-    print('Building translate table...')
-    translate_table = build_translation_table(task_map,system_ram)
-    print(translate_table)
-    # Use translation table to make physical trace
-=======
     task_map,trace = parse_trace(input_trace)
 
     #Build the translation table
@@ -164,7 +153,6 @@ def generate_translation(memory_size, input_trace, filename):
     translate_table = build_translation_table(task_map, memory_size)
 
     #Use translation table to make physical trace
->>>>>>> 46b4fa283f6674ddc0358fada3a07e61be98b1b0
     print('Building physical trace...')
     phys_trace = translate_trace_file(translate_table, trace)
 
