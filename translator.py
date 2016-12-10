@@ -105,24 +105,38 @@ def run_trace(trace):
 
     return results
 
+def make_stats(results):
+    stats = ''
+    header = 'TaskID Requests     Hits   Misses   Hit Rate\n'
+    format_str = '{:>6} {:>8} {:>8} {:>8} {:>10.4}\n'
+    stats = stats + header
+    for key in sorted(results.keys()):
+        stats = stats + format_str.format(key, results[key]['total'], results[key]['hit'], results[key]['miss'], results[key]['hit']/results[key]['total'])
+    return stats
 
 
 # Kick off the show
 def main():
     # Parse input trace
+    print('Parsing File...')
     task_map,trace = parse_trace_file('trace_8_512_2500.txt')
 
     # Build translation table
     system_ram = 0x100000000    # 4G RAM for 32b system
+    print('Building translate table...')
     translate_table = build_translation_table(task_map,system_ram)
 
     # Use translation table to make physical trace
+    print('Building physical trace...')
     phys_trace = translate_trace_file(translate_table, trace)
 
     # Run trace through cache
+    print('Running trace...')
     results = run_trace(phys_trace)
 
     pprint.pprint(results)
+    print('Making stats...')
+    print(make_stats(results))
 
 
 
