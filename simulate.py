@@ -34,6 +34,9 @@ def main():
     parser.add_argument('-n', '--name', dest='filename', metavar='N',
                         nargs='?', default='trace_'+str(random.randint(0,10000)),
                         help='provide a filename. Default=trace_(random num)).')
+    parser.add_argument('-s', '--shared', dest='shared', 
+                        default=False, action='store_true',
+                        help='Add Flag to make the cache shared')
 
     #Parse the input arguments
     args = parser.parse_args()
