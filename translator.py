@@ -125,6 +125,41 @@ def run_trace(trace):
 
     return results
 
+# Run a physical trace through the cache, report metrics
+# This method does a premption context switch whenver the taskid changes
+# This will probably significantly reduce preformance
+def run_shared_trace(trace):
+    import cache
+    results = {}
+    size = 4096       # 128k
+    block_size = 8     # 32 bytes
+    mapping = 1
+    current_taskid = 0
+    myCache = cache.cache(size, block_size, mapping)
+
+    # for every element in the trace
+    #   1. grab ID
+    #   2. pass RW and Addr to cache
+    #   3. Get hit/miss
+    #   4. Record Results
+    for element in trace:
+        taskid = element[0]
+        # Did a context switch occur?
+        if taskid != current_taskid:
+            myCache.mark_invalid()
+            current_taskid = taskid
+
+        if taskid not in results.keys():
+            results[taskid] = {'total':0,'hit':0,'miss':0}
+        results[taskid]['total'] += 1
+
+        if myCache.simulate_element(element[1:]):
+            results[taskid]['hit'] += 1
+        else:
+            results[taskid]['miss'] += 1
+
+    return results
+
 def make_stats(results):
     stats = ''
     header = 'TaskID Requests     Hits   Misses   Hit Rate\n'
