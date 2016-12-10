@@ -119,7 +119,7 @@ def generate_trace(memory_size, trace_length, task_id, filename):
     output = pretty_trace(trace)
 
     #Write to file
-    f = open(filename, 'w')
+    f = open('traces/'+filename+'.trace', 'w')
     out_file = task_addrs + output
     f.write(out_file)
     f.close
