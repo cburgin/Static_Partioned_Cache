@@ -105,7 +105,6 @@ def task_map_from_string(map_string):
         for i in range(int(map_pair[0])):
             task_map[taskid]=int(map_pair[1],16)
             taskid += 1
-    print(task_map)
     return task_map
 
 #Generates a trace file and returns a file object

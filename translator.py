@@ -44,6 +44,26 @@ def parse_trace_file(filename):
         trace[-1][2] = int(trace[-1][2],16)
     return task_map,trace
 
+# Parse the trace
+def parse_trace(data):
+    # Parse task_map from line 0
+    data = data.strip().split('\n')
+    task_map = {}
+    task_data = data[0]
+    task_data = task_data.strip()
+    task_data = task_data.split(',')
+    for i in task_data:
+        i = i.split()
+        task_map[i[0]] = int(i[1],16)
+
+    trace = []
+    # Parse trace from lines 1-n
+    for line in data[1:]:
+        line = line.strip()
+        trace.append(line.split(','))
+        trace[-1][2] = int(trace[-1][2],16)
+    return task_map,trace
+
 # Create a translation table based on mem size and task_map
 def build_translation_table(task_map, mem_size):
     total_task_mem = 0
@@ -122,10 +142,11 @@ def write_stats_file(filename, stats):
     f.write(stats)
     f.close()
 
-# Kick off the show
-def main():
-    # Parse input trace
+#Translates the virtual task address space into the physical address space
+def generate_translation(memory_size, input_trace, filename):
+    #Parse the File
     print('Parsing File...')
+<<<<<<< HEAD
     filename = 'traces/trace_8435.trace'
     task_map,trace = parse_trace_file(filename)
 
@@ -135,6 +156,15 @@ def main():
     translate_table = build_translation_table(task_map,system_ram)
     print(translate_table)
     # Use translation table to make physical trace
+=======
+    task_map,trace = parse_trace(input_trace)
+
+    #Build the translation table
+    print('Building translation table...')
+    translate_table = build_translation_table(task_map, memory_size)
+
+    #Use translation table to make physical trace
+>>>>>>> 46b4fa283f6674ddc0358fada3a07e61be98b1b0
     print('Building physical trace...')
     phys_trace = translate_trace_file(translate_table, trace)
 
@@ -142,14 +172,41 @@ def main():
     print('Running trace...')
     results = run_trace(phys_trace)
 
-    pprint.pprint(results)
     print('Making stats...')
     stats = make_stats(results)
     print(stats)
     print('Writing File')
+    print('Filename: '+filename)
     write_stats_file(filename, stats)
 
-
-
-if __name__ == '__main__':
-    main()
+# # Kick off the show
+# def main():
+#     # Parse input trace
+#     print('Parsing File...')
+#     filename = 'set_trace_8_MC_2500.txt'
+#     task_map,trace = parse_trace_file(filename)
+#
+#     # Build translation table
+#     system_ram = 0x100000000    # 4G RAM for 32b system
+#     print('Building translate table...')
+#     translate_table = build_translation_table(task_map,system_ram)
+#
+#     # Use translation table to make physical trace
+#     print('Building physical trace...')
+#     phys_trace = translate_trace_file(translate_table, trace)
+#
+#     # Run trace through cache
+#     print('Running trace...')
+#     results = run_trace(phys_trace)
+#
+#     pprint.pprint(results)
+#     print('Making stats...')
+#     stats = make_stats(results)
+#     print(stats)
+#     print('Writing File')
+#     write_stats_file(filename, stats)
+#
+#
+#
+# if __name__ == '__main__':
+#     main()
