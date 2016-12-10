@@ -34,19 +34,44 @@ def build_task_map(num_tasks):
 
 def build_rand_element_list(task_map):
     taskid = random.choice(range(len(task_map)))
-    num_slices = 512
+    num_slices = 64
     slice_size = int(task_map[taskid] / num_slices)
     base_addr = random.choice(range(num_slices))*slice_size
     element_list = []
-    for i in range(random.choice(range(1,128))):
+    for i in range(random.choice(range(1,32))):
         element = []
         element.append(random.choice(rw_options))
         element.append(taskid)
-        element.append(base_addr+(i*8))
+        element.append(base_addr+(i))
         element_list.append(element)
     return element_list
 
+def build_evil_element_list(task_map):
+    offset = 2**5  #1M
+    element_list = []
+    for taskid in range(len(task_map)):
+        base_addr = random.choice(range(task_map[taskid]))
+        for i in range(0,512*8,8):
+            element = []
+            element.append(random.choice(rw_options))
+            element.append(taskid)
+            element.append(base_addr+i)
+            element_list.append(element)
+            element_list.append(build_opposite_element(element))
+            # make 512 offset r/w
+            offset_element = build_offset_element(element,offset)
+            element_list.append(offset_element)
+            element_list.append(build_opposite_element(offset_element))
+            if i == 0:
+                tag_base = (base_addr / 8) / (4096 / 8)
+                tag_offset = ((base_addr+offset) / 8) / (4096 / 8)
+                print("tag_base: ",tag_base, "tag_offset",tag_offset)
+    return element_list
 
+
+
+def build_offset_element(element,offset):
+    return [element[0],element[1],element[2]+offset]
 
 # Build random element of a trace - single line entry
 def build_rand_element(task_map):
