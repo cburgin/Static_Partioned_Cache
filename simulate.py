@@ -5,6 +5,10 @@
 import argparse
 import random
 import trace_generator
+import translator
+
+def auto_int(x):
+    return int(x,0)
 
 def main():
     #Parse the command line arguments provided at run time.
@@ -15,7 +19,7 @@ def main():
                         help='provide the cache block size in bytes. Default=32.')
     parser.add_argument('mapping', metavar='M', type=int, nargs='?', default=1,
                         help='provide the cache mapping. Default=1.')
-    parser.add_argument('memory_size', metavar='R', type=int, nargs='?', default=0x100000000,
+    parser.add_argument('memory_size', metavar='R', type=auto_int, nargs='?', default=0x100000000,
                         help='provide the size of the memory. Default=4GB.')
     parser.add_argument('trace_length', metavar='L', type=int, nargs='?', default=2000,
                         help='provide the length of the simulated trace. Default=2000.')
@@ -28,9 +32,11 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename)
+    #Generate the traces
+    trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename)
 
-    #Run the code.
+    #Translate the virtual task addresses to the physical memory space. AND simulate the cache
+    translator.generate_translation(args.memory_size, trace, args.filename)
 
 if __name__ =='__main__':
     main()
