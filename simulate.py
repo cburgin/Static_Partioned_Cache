@@ -34,7 +34,7 @@ def main():
     parser.add_argument('-n', '--name', dest='filename', metavar='N',
                         nargs='?', default='trace_'+str(random.randint(0,10000)),
                         help='provide a filename. Default=trace_(random num)).')
-    parser.add_argument('-s', '--shared', dest='shared', 
+    parser.add_argument('-s', '--shared', dest='shared',
                         default=False, action='store_true',
                         help='Add Flag to make the cache shared')
 
@@ -46,7 +46,7 @@ def main():
     trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename)
 
     #Translate the virtual task addresses to the physical memory space. AND simulate the cache
-    translator.generate_translation(args.memory_size, trace, args.filename)
+    translator.generate_translation(args.memory_size, trace, args.filename, args.shared)
 
 if __name__ =='__main__':
     main()

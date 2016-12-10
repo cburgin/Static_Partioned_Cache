@@ -65,20 +65,28 @@ def parse_trace(data):
     return task_map,trace
 
 # Create a translation table based on mem size and task_map
-def build_translation_table(task_map, mem_size):
+def build_translation_table(task_map, mem_size, shared):
     total_task_mem = 0
-    for value in task_map.values():
-        total_task_mem += value
-    if total_task_mem > mem_size:
-        print('ERROR TOO MUCH MEM REQUESTED')
-        return 0
+    if shared:
+        for value in task_map.values():
+            if value > mem_size:
+                print('ERROR TOO MUCH MEM REQUESTED')
+                return 0
+        translate_table = {}
+        for task,size in task_map.items():
+            translate_table[task] = 0
+    else:
+        for value in task_map.values():
+            total_task_mem += value
+        if total_task_mem > mem_size:
+            print('ERROR TOO MUCH MEM REQUESTED')
+            return 0
 
-    avail_location = 0
-    translate_table = {}
-    for task,size in task_map.items():
-        translate_table[task] = avail_location
-        avail_location = avail_location + size
-
+        avail_location = 0
+        translate_table = {}
+        for task,size in task_map.items():
+            translate_table[task] = avail_location
+            avail_location = avail_location + size
     return translate_table
 
 def translate_trace_file(translate_table, virt_trace):
@@ -142,12 +150,14 @@ def run_shared_trace(trace):
     #   2. pass RW and Addr to cache
     #   3. Get hit/miss
     #   4. Record Results
+    num_context_switches = 0
     for element in trace:
         taskid = element[0]
         # Did a context switch occur?
         if taskid != current_taskid:
             myCache.mark_invalid()
             current_taskid = taskid
+            num_context_switches += 1
 
         if taskid not in results.keys():
             results[taskid] = {'total':0,'hit':0,'miss':0}
@@ -157,7 +167,7 @@ def run_shared_trace(trace):
             results[taskid]['hit'] += 1
         else:
             results[taskid]['miss'] += 1
-
+    print("number of context switches: ", num_context_switches)
     return results
 
 def make_stats(results):
@@ -178,14 +188,14 @@ def write_stats_file(filename, stats):
     f.close()
 
 #Translates the virtual task address space into the physical address space
-def generate_translation(memory_size, input_trace, filename):
+def generate_translation(memory_size, input_trace, filename, shared):
     #Parse the File
     print('Parsing File...')
     task_map,trace = parse_trace(input_trace)
 
     #Build the translation table
     print('Building translation table...')
-    translate_table = build_translation_table(task_map, memory_size)
+    translate_table = build_translation_table(task_map, memory_size, shared)
 
     #Use translation table to make physical trace
     print('Building physical trace...')
@@ -193,7 +203,11 @@ def generate_translation(memory_size, input_trace, filename):
 
     # Run trace through cache
     print('Running trace...')
-    results = run_trace(phys_trace)
+    if shared:
+        # When shared, we didn't have to do any translation
+        results = run_shared_trace(phys_trace)
+    else:
+        results = run_trace(phys_trace)
     print(results)
     print('Making stats...')
     stats = make_stats(results)
