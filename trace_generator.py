@@ -6,6 +6,7 @@
 
 import random
 import pprint
+import sys
 
 # Script Wide Values
 rw_options = ['read', 'write']
@@ -20,6 +21,10 @@ crit_options = ['hi', 'low']
 # 1 4G
 addr_range_options = [0x100000000]
 #options_list = [rw_options, procid_options]
+
+# task maps for specific cases
+mc_task_map = {0: 0x40000000, 1: 0x40000000, 2: 0x20000000, 3: 0x20000000, \
+                4: 0x10000000, 5: 0x10000000, 6: 0x10000000, 7: 0x10000000}
 
 # task map is dict with key = taskid, value = memory space
 def build_task_map(num_tasks):
@@ -95,11 +100,17 @@ def pretty_task_map(task_map):
 # Do everything
 def main():
     # Create task_map dict
-    task_map = build_task_map(1)
+    if len(sys.argv) != 2:
+        print('Wrong number of params.')
+        return 1
+
+    filename = sys.argv[1]
+    #task_map = build_task_map(8)
+    task_map = mc_task_map
     trace = build_random_trace(2500, task_map)
     task_addrs = pretty_task_map(task_map)
     output = pretty_trace(trace)
-    f = open('set_trace_1_4G_2500.txt','w')
+    f = open(filename,'w')
     f.write(task_addrs)
     f.write(output)
     f.close()
