@@ -109,7 +109,6 @@ def run_trace(trace):
 
 # Kick off the show
 def main():
-
     # Parse input trace
     task_map,trace = parse_trace_file('trace_8_512_2500.txt')
 
