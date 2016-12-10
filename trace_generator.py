@@ -97,16 +97,33 @@ def pretty_task_map(task_map):
         output += format_str.format(i,task_map[i])
     return output[:-1] + "\n"
 
+def task_map_from_string(map_string):
+    map_list = map_string.split(',')
+    task_map = {}
+    taskid = 0
+    for map_pair in map_list:
+        map_pair = map_pair.split('-')
+        for i in range(int(map_pair[0])):
+            task_map[taskid]=int(map_pair[1],16)
+            taskid += 1
+    print(task_map)
+    return task_map
+
 # Do everything
 def main():
     # Create task_map dict
-    if len(sys.argv) != 2:
+    if len(sys.argv) > 3:
         print('Wrong number of params.')
         return 1
-
-    filename = sys.argv[1]
-    #task_map = build_task_map(8)
-    task_map = mc_task_map
+    if len(sys.argv) == 3:
+        task_map = task_map_from_string(sys.argv[2])
+        filename = sys.argv[1]
+    elif len(sys.argv) == 2:
+        task_map = build_task_map(8)
+        filename = sys.argv[1]
+    else:
+        task_map = build_task_map(8)
+        filename = 'sample.txt'
     trace = build_random_trace(2500, task_map)
     task_addrs = pretty_task_map(task_map)
     output = pretty_trace(trace)
