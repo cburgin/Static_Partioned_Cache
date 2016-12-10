@@ -128,10 +128,10 @@ def run_trace(trace):
 def make_stats(results):
     stats = ''
     header = 'TaskID Requests     Hits   Misses   Hit Rate\n'
-    format_str = '{:>6} {:>8} {:>8} {:>8} {:>10.4}\n'
+    format_str = '{:>6} {:>8} {:>8} {:>8} {:>10.4f}\n'
     stats = stats + header
     for key in sorted(results.keys()):
-        stats = stats + format_str.format(key, results[key]['total'], results[key]['hit'], results[key]['miss'], float(results[key]['hit']/results[key]['total']))
+        stats = stats + format_str.format(key, results[key]['total'], results[key]['hit'], results[key]['miss'], results[key]['hit']/float(results[key]['total']))
     return stats
 
 def write_stats_file(filename, stats):

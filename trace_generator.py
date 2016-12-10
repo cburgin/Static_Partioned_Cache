@@ -42,9 +42,10 @@ def build_rand_element_list(task_map):
         element = []
         element.append(random.choice(rw_options))
         element.append(taskid)
-        element.append(base_addr+((i*512) % slice_size) )
+        element.append(base_addr+(i*8))
         element_list.append(element)
     return element_list
+
 
 
 # Build random element of a trace - single line entry
