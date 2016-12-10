@@ -110,5 +110,10 @@ class cache:
 
         return cacheHit
 
+    def mark_invalid(self):
+        for curr_set in self.cache:
+            for i in curr_set:
+                i['valid'] = 0
+
     def display_cache(self):
         pass
