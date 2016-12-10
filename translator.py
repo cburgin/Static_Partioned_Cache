@@ -82,8 +82,8 @@ def translate_trace_file(translate_table, virt_trace):
 def run_trace(trace):
     import cache
     results = {}
-    size = 4096
-    block_size = 8
+    size = 131072
+    block_size = 32
     mapping = 1
     myCache = cache.cache(size, block_size, mapping)
 
@@ -111,10 +111,11 @@ def run_trace(trace):
 def main():
 
     # Parse input trace
-    task_map,trace = parse_trace_file('sample.txt')
+    task_map,trace = parse_trace_file('trace_8_512_2500.txt')
 
     # Build translation table
-    translate_table = build_translation_table(task_map,0x80000000)
+    system_ram = 0x100000000    # 4G RAM for 32b system
+    translate_table = build_translation_table(task_map,system_ram)
 
     # Use translation table to make physical trace
     phys_trace = translate_trace_file(translate_table, trace)

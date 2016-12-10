@@ -13,9 +13,12 @@ rw_options = ['read', 'write']
 crit_options = ['hi', 'low']
 #prior_options = range(0,4)
 #taskid_options = range(0,4)
-# 64M, 128M, 256M, 512M,
-addr_range_options = [0x04000000, 0x08000000, 0x10000000, 0x20000000]
-
+# 16M, 32M, 64M, 128M, 256M, 512M,
+#addr_range_options = [0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000, 0x20000000]
+# All 512M
+#addr_range_options = [0x20000000]
+# 1 4G
+addr_range_options = [0x100000000]
 #options_list = [rw_options, procid_options]
 
 # task map is dict with key = taskid, value = memory space
@@ -24,6 +27,21 @@ def build_task_map(num_tasks):
     for i in range(num_tasks):
         task_map[i] = random.choice(addr_range_options)
     return task_map
+
+def build_rand_element_list(task_map):
+    taskid = random.choice(range(len(task_map)))
+    num_slices = 512
+    slice_size = int(task_map[taskid] / num_slices)
+    base_addr = random.choice(range(num_slices))*slice_size
+    element_list = []
+    for i in range(random.choice(range(1,128))):
+        element = []
+        element.append(random.choice(rw_options))
+        element.append(taskid)
+        element.append(base_addr+i)
+        element_list.append(element)
+    return element_list
+
 
 # Build random element of a trace - single line entry
 def build_rand_element(task_map):
@@ -38,11 +56,20 @@ def build_rand_element(task_map):
     element.append(random.choice(range(task_map[tmp_taskid])))
     return element
 
+def build_opposite_element(element):
+    if element[0] == 'read':
+        return ['write', element[1], element[2]]
+    else:
+        return ['read', element[1], element[2]]
+
 # Build random trace
 def build_random_trace(length, task_map):
     trace = []
     for i in range(length):
-        trace.append(build_rand_element(task_map))
+        element_list = build_rand_element_list(task_map)
+        trace.extend(element_list)
+        #trace.append(build_opposite_element(element))
+    #random.shuffle(trace)
     return trace
 
 # Takes trace_list and returns printable string of Trace
@@ -68,11 +95,11 @@ def pretty_task_map(task_map):
 # Do everything
 def main():
     # Create task_map dict
-    task_map = build_task_map(4)
-    trace = build_random_trace(25, task_map)
+    task_map = build_task_map(1)
+    trace = build_random_trace(2500, task_map)
     task_addrs = pretty_task_map(task_map)
     output = pretty_trace(trace)
-    f = open('sample.txt','w')
+    f = open('set_trace_1_4G_2500.txt','w')
     f.write(task_addrs)
     f.write(output)
     f.close()
