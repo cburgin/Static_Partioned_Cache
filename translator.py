@@ -193,7 +193,8 @@ def make_stats(results):
 def make_miss_stats(results):
     print("Number of unique curr_set,curr_tag pairs that missed per taskid")
     for key in sorted(results.keys(), key=int):
-        print(key, len(results[key]['misspairs']))
+        ordered_miss_pairs_by_set = sorted(results[key]['misspairs'].keys())
+        print(key, len(ordered_miss_pairs_by_set), ordered_miss_pairs_by_set[0], ordered_miss_pairs_by_set[-1])
 
 #Translates the virtual task address space into the physical address space
 def generate_translation(memory_size, input_trace, shared):

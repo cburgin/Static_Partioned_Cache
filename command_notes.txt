@@ -2,3 +2,6 @@ python3 simulate.py -c 4096 -b 8 -m 1 -r 0x100000000 -l 100 -t "2-0x40000000,32-
 
 python3 simulate.py --memsize 0x100000000 --filename traces/trace_8_512_2500.txt --use-existing-trace --output-filename results/trace_8_512_2500.result
 python3 simulate.py --memsize 0x100000000 --filename traces/trace_8_512_2500.txt --use-existing-trace --output-filename results/trace_8_512_2500.result --shared
+
+# 4M memory make a new trace
+python3 simulate.py -c 4096 -b 8 -m 1 -r 0x400000 -l 1000 -t "4-0x100000" -n "4096_8_1_4M_4x1M_1000" --output-filename results/4096_8_1_4M_4x1M_1000.results
