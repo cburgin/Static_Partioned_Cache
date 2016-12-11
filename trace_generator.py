@@ -47,6 +47,46 @@ def build_rand_element_list(task_map):
         element_list.append(element)
     return element_list
 
+#Builds a set random element list
+def build_set_evil_element_list(task_map, cache_size, block_size, mapping, memory_size):
+    # Amount of offsets that should be written to
+    evil_offset_count = 1
+
+    # Get the cache geometry
+    num_sets = calc_num_sets(cache_size, block_size, mapping)
+    set_bits = int(math.log(num_sets,2))
+    offset_bits = int(math.log(block_size,2))
+    tag_bits = int(math.log(memory_size,2))-set_bits-offset_bits
+
+    # Calculate all of the task partition sizes
+    task_size_list = []     # List of all of the sizes.
+    for taskid in task_map.keys():
+        # Grab low and high values
+        low_set = task_map[taskid][0]
+        high_set = task_map[taskid][1]
+        task_size_list.append((high_set - low_set)+1)
+
+    # Get the minimum task space size
+    min_size = min(task_size_list)
+
+    # Calculate the operations to occur in a trace
+    element_list = []
+    for taskid in task_map.keys():
+        # Loop for the min task size.
+        for i in range(min_size):
+            # Create j operations that are at different offsets
+            for j in range(evil_offset_count+1):
+                element = []
+                #(r/w, task id, address)
+                element.append(random.choice(rw_options))
+                element.append(taskid)
+                element.append()
+                #Append the operation and a mirriored operation to the list
+                element_list.append(element)
+                element_list.append(build_opposite_element(element))
+
+    return element_list
+
 def build_evil_element_list(task_map):
     offset = 2**5  #1M
     element_list = []
