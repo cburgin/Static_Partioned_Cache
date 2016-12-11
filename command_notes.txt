@@ -1,0 +1,4 @@
+python3 simulate.py -c 4096 -b 8 -m 1 -r 0x100000000 -l 100 -t "2-0x40000000,32-0x04000000" -n "2_1gigs_and_4_512s" --shared
+
+python3 simulate.py --memsize 0x100000000 --filename traces/trace_8_512_2500.txt --use-existing-trace --output-filename results/trace_8_512_2500.result
+python3 simulate.py --memsize 0x100000000 --filename traces/trace_8_512_2500.txt --use-existing-trace --output-filename results/trace_8_512_2500.result --shared

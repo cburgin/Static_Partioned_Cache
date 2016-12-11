@@ -191,6 +191,7 @@ def make_stats(results):
     return stats
 
 def make_miss_stats(results):
+    print("Number of unique curr_set,curr_tag pairs that missed per taskid")
     for key in sorted(results.keys(), key=int):
         print(key, len(results[key]['misspairs']))
 
