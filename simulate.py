@@ -40,16 +40,27 @@ def main():
     parser.add_argument('-a', '--tracealgorithm', dest='trace_alg', metavar='A',
                         nargs='?', default='std',
                         help='Choose the trace generator algorithm: std, evil')
+    parser.add_argument('-x', '--use-existing-trace', dest='existing',
+                        default=False, action='store_true',
+                        help='Add Flag to make the cache shared')
 
     #Parse the input arguments
     args = parser.parse_args()
     print(args)
 
-    #Generate the traces
-    trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename, args.trace_alg, args.shared)
+    if args.existing:
+        trace = read_trace_file(args.filename)
+    else:
+        #Generate the traces
+        trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename, args.trace_alg, args.shared)
 
     #Translate the virtual task addresses to the physical memory space. AND simulate the cache
     translator.generate_translation(args.memory_size, trace, args.filename, args.shared)
+
+
+def read_trace_file(filename):
+    f = open(filename, 'r')
+    return f.read()
 
 if __name__ =='__main__':
     main()
