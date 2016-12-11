@@ -1,0 +1,6 @@
+Trace: results/4096_8_1_4M_4x1M_5000.results
+TaskID Requests     Hits   Misses   Hit Rate
+     0    18931       20    18911     0.0011
+     1    20291       21    20270     0.0010
+     2    20276       17    20259     0.0008
+     3    20461       24    20437     0.0012

@@ -6,6 +6,7 @@
 import random
 import pprint
 import sys
+import math
 
 # Script Wide Values
 rw_options = ['read', 'write']
@@ -68,23 +69,54 @@ def build_evil_element_list(task_map):
                 #print("tag_base: ",tag_base, "tag_offset",tag_offset)
     return element_list
 
-
+def build_set_element_list(task_map, cache_size, block_size, mapping, memory_size):
+    element_list=[]
+    # cache_size = 4096
+    # block_size = 8
+    # mapping = 1
+    # memory_size = 0x400000
+    num_sets = calc_num_sets(cache_size, block_size, mapping)
+    set_bits = int(math.log(num_sets,2))
+    offset_bits = int(math.log(block_size,2))
+    tag_bits = int(math.log(memory_size,2))-set_bits-offset_bits
+    taskid = random.choice(list(task_map.keys()))
+    low_set = task_map[taskid][0]
+    high_set = task_map[taskid][1]
+    num_instructions = random.choice(range(1,32))
+    # Pick a set allowed to that task
+    base_addr = random.choice(range(2**tag_bits))
+    curr_set = random.choice(range(low_set,high_set+1))
+    offset = random.choice(range(block_size))
+    for i in range(num_instructions):
+        # Figure out a random address in a valid set
+        curr_set = low_set + ((curr_set + (offset+i // block_size)) % (high_set - low_set + 1))
+        offset = (offset+i) % block_size
+        addr = (base_addr << set_bits) + curr_set
+        addr = (addr << offset_bits) + offset
+        # Build the element
+        element = []
+        element.append(taskid)
+        element.append(random.choice(rw_options))
+        element.append(addr)
+        element_list.append(element)
+        #element_list.append(build_opposite_element(element))
+    return element_list
 
 def build_offset_element(element,offset):
     return [element[0],element[1],element[2]+offset]
 
 # Build random element of a trace - single line entry
-def build_rand_element(task_map):
-    element = []
-    # Make an entry with a random R/W, taskid, virt_addr
-    # choose R/W
-    element.append(random.choice(rw_options))
-    # choose taskid
-    tmp_taskid = random.choice(range(len(task_map)))
-    element.append(tmp_taskid)
-    # choose addr from the selected task id's range
-    element.append(random.choice(range(task_map[tmp_taskid])))
-    return element
+# def build_rand_element(task_map):
+#     element = []
+#     # Make an entry with a random R/W, taskid, virt_addr
+#     # choose R/W
+#     element.append(random.choice(rw_options))
+#     # choose taskid
+#     tmp_taskid = random.choice(range(len(task_map)))
+#     element.append(tmp_taskid)
+#     # choose addr from the selected task id's range
+#     element.append(random.choice(range(task_map[tmp_taskid])))
+#     return element
 
 def build_opposite_element(element):
     if element[0] == 'read':
@@ -92,12 +124,13 @@ def build_opposite_element(element):
     else:
         return ['read', element[1], element[2]]
 
-def build_trace(length, task_map, trace_alg):
+def build_trace(length, task_map, trace_alg, cache_size, block_size, mapping, memory_size):
     trace_algorithm = { 'std':build_rand_element_list,
-                        'evil':build_evil_element_list}
+                        'evil':build_evil_element_list,
+                        'set':build_set_element_list}
     trace = []
     for i in range(length):
-        element_list = trace_algorithm[trace_alg](task_map)
+        element_list = trace_algorithm[trace_alg](task_map, cache_size, block_size, mapping, memory_size)
         trace.extend(element_list)
         #trace.append(build_opposite_element(element))
     #random.shuffle(trace)
@@ -133,27 +166,58 @@ def pretty_task_map(task_map):
         output += format_str.format(i,task_map[i])
     return output[:-1] + "\n"
 
-def task_map_from_string(map_string, shared, memory_size):
+def calc_num_sets(cache_size, block_size, mapping):
+    # Figure out cache geometry
+    num_blocks = cache_size // block_size
+    if mapping == 0:
+        mapping = num_blocks
+    num_sets = cache_size // (mapping * block_size)
+    return num_sets
+
+def task_map_from_string(map_string, shared, memory_size, cache_size, block_size, mapping):
     map_list = map_string.split(',')
     task_map = {}
     taskid = 0
+    num_sets = calc_num_sets(cache_size, block_size, mapping)
+
+    # Parse string - get relative memory per task
     for map_pair in map_list:
         map_pair = map_pair.split('-')
         for i in range(int(map_pair[0])):
             if shared:      # In shared everyone gets the whole memory
-                task_map[taskid] = memory_size
+                task_map[taskid] = 1.00   # percentage of sets they can use
             else:           # Else they go in their own slot
-                task_map[taskid]=int(map_pair[1],16)
+                task_map[taskid] = int(map_pair[1],16)/memory_size  # percentage of sets to use
             taskid += 1
+
+    # Check mem Requests
+    if not shared:
+        sets_percent = 0
+        for taskid in task_map.keys():
+            sets_percent += task_map[taskid]
+        if sets_percent > 1.00:
+            print('---TOO MUCH MEM REQUESTED--- ', sets_percent)
+            return 0
+
+    base_set = 0
+    for taskid in task_map.keys():
+        start_set = base_set
+        end_set = int(start_set + (num_sets*task_map[taskid]-1))
+        base_set = end_set + 1    # next unused set
+        task_map[taskid]=(start_set,end_set)
+
+    print(task_map)
     return task_map
 
 #Generates a trace file and returns a file object
-def generate_trace(memory_size, trace_length, task_id, filename, trace_alg, shared):
+def generate_trace(memory_size, cache_size, block_size, mapping, trace_length,
+                    task_id, filename, trace_alg, shared):
     #Parse the task ID mapping and generate a task map
-    task_map = task_map_from_string(task_id, shared, memory_size)
+    task_map = task_map_from_string(task_id, shared, memory_size, cache_size, block_size, mapping)
     #Generate the trace list
-    trace = build_trace(trace_length, task_map, trace_alg)
-    task_addrs = pretty_task_map(task_map)
+    trace = build_trace(trace_length, task_map, trace_alg, cache_size, block_size, mapping, memory_size)
+    #task_addrs = pretty_task_map(task_map)
+    task_addrs = ''
     output = pretty_trace(trace)
 
     #Write to file

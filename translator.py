@@ -20,7 +20,7 @@
 
 import pprint
 import copy
-
+import cache
 
 # parse the trace file from generator
 # return dict task_map and list trace
@@ -50,16 +50,20 @@ def parse_trace(data):
     # Parse task_map from line 0
     data = data.strip().split('\n')
     task_map = {}
-    task_data = data[0]
-    task_data = task_data.strip()
-    task_data = task_data.split(',')
-    for i in task_data:
-        i = i.split()
-        task_map[i[0]] = int(i[1],16)
+    start = 0
+    # old style
+    if data[0][0:2] == '0 ':
+        start = 1
+        task_data = data[0]
+        task_data = task_data.strip()
+        task_data = task_data.split(',')
+        for i in task_data:
+            i = i.split()
+            task_map[i[0]] = int(i[1],16)
 
     trace = []
     # Parse trace from lines 1-n
-    for line in data[1:]:
+    for line in data[start:]:
         line = line.strip()
         trace.append(line.split(','))
         trace[-1][2] = int(trace[-1][2],16)
@@ -108,13 +112,8 @@ def translate_trace_file(translate_table, virt_trace):
     return phys_trace
 
 # Run a physical trace through the cache, report metrics
-def run_trace(trace):
-    import cache
+def run_trace(trace, myCache):
     results = {}
-    size = 4096       # 128k
-    block_size = 8     # 32 bytes
-    mapping = 1
-    myCache = cache.cache(size, block_size, mapping)
 
     # for every element in the trace
     #   1. grab ID
@@ -127,6 +126,8 @@ def run_trace(trace):
             results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}}
         results[taskid]['total'] += 1
         hitmiss_result,curr_set,curr_tag = myCache.simulate_element(element[1:])
+        # if curr_tag > 0x100000:
+        #     print(element, curr_set, curr_tag)
         if hitmiss_result:
             results[taskid]['hit'] += 1
         else:
@@ -141,14 +142,9 @@ def run_trace(trace):
 # Run a physical trace through the cache, report metrics
 # This method does a premption context switch whenver the taskid changes
 # This will probably significantly reduce preformance
-def run_shared_trace(trace):
-    import cache
+def run_shared_trace(trace, myCache):
     results = {}
-    size = 4096       # 128k
-    block_size = 8     # 32 bytes
-    mapping = 1
     current_taskid = 0
-    myCache = cache.cache(size, block_size, mapping)
 
     # for every element in the trace
     #   1. grab ID
@@ -196,28 +192,39 @@ def make_miss_stats(results):
         ordered_miss_pairs_by_set = sorted(results[key]['misspairs'].keys())
         print(key, len(ordered_miss_pairs_by_set), ordered_miss_pairs_by_set[0], ordered_miss_pairs_by_set[-1])
 
+def new_parse(input_trace):
+    return input_trace
+
 #Translates the virtual task address space into the physical address space
-def generate_translation(memory_size, input_trace, shared):
+def generate_translation(memory_size, cache_size, block_size, mapping,
+                            input_trace, shared):
     #Parse the File
     print('Parsing File...')
     task_map,trace = parse_trace(input_trace)
+    if task_map != {}:
+        #Build the translation table
+        print('Building translation table...')
+        translate_table = build_translation_table(task_map, memory_size, shared)
 
-    #Build the translation table
-    print('Building translation table...')
-    translate_table = build_translation_table(task_map, memory_size, shared)
+        #Use translation table to make physical trace
+        print('Building physical trace...')
+        phys_trace = translate_trace_file(translate_table, trace)
+    else:
+        phys_trace = trace
 
-    #Use translation table to make physical trace
-    print('Building physical trace...')
-    phys_trace = translate_trace_file(translate_table, trace)
+    # Create cache from perameters
+    print('Building Cache...')
+    myCache = cache.cache(cache_size, block_size, mapping)
+    print('Cache Stats: Size: ', myCache.cacheSize, 'Block Size: ', myCache.blockSize, 'Mapping: ', myCache.cacheMap)
 
     # Run trace through cache
     print('Running trace...')
     if shared:
         # When shared, we didn't have to do any translation
-        results = run_shared_trace(phys_trace)
+        results = run_shared_trace(phys_trace, myCache)
     else:
-        results = run_trace(phys_trace)
-    #print(results)
+        results = run_trace(phys_trace, myCache)
+    print(results.keys())
     print('Making stats...')
     stats = make_stats(results)
     print(stats)
