@@ -21,6 +21,7 @@
 import pprint
 import copy
 import cache
+import pagetable
 
 # parse the trace file from generator
 # return dict task_map and list trace
@@ -111,6 +112,43 @@ def translate_trace_file(translate_table, virt_trace):
         phys_trace.append(phys_element)
     return phys_trace
 
+def run_trace_with_page_table(trace, myCache, page_tables):
+    results ={}
+
+    # for every element in the trace
+    #   1. grab ID
+    #   2. convert addr with page table
+    #   3. invalidate cache line if PT says so
+    #   4. pass RW and Addr to cache
+    #   5. Get hit/miss
+    #   6. Record Results
+    for element in trace:
+        taskid = element[0]
+        # Create a results entry if one doesn't exist
+        if taskid not in results.keys():
+            results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}}
+        results[taskid]['total'] += 1
+        # Use the page table to update the address with the physical address
+        valid,element[2] = page_tables[taskid].translate(element[2])
+        # If the addr is valid in the page table -- go normally
+        if valid:
+            hitmiss_result,curr_set,curr_tag = myCache.simulate_element(element[1:])
+        else:
+            # If the addr was invalid in the page table, invalidate the cache line
+            myCache.mark_line_invalid(element[2])
+            hitmiss_result,curr_set,curr_tag = myCache.simulate_element(element[1:])
+
+        if hitmiss_result:
+            results[taskid]['hit'] += 1
+        else:
+            results[taskid]['miss'] += 1
+            if (curr_set,curr_tag) in results[taskid]['misspairs'].keys():
+                results[taskid]['misspairs'][(curr_set,curr_tag)] += 1
+            else:
+                results[taskid]['misspairs'][(curr_set,curr_tag)] = 1
+
+    return results
+
 # Run a physical trace through the cache, report metrics
 def run_trace(trace, myCache):
     results = {}
@@ -195,12 +233,22 @@ def make_miss_stats(results):
 def new_parse(input_trace):
     return input_trace
 
+def build_page_tables(task_map, memory_size, cache_size, block_size, mapping, page_size):
+    page_tables = {}
+    print('inside build page tables',task_map)
+    for taskid in task_map.keys():
+        # allowed_sets is the data in task_map dict at key taskid
+        page_tables[taskid] = pagetable.PageTable(memory_size, cache_size, block_size,
+                                                    mapping, task_map[taskid], page_size)
+    return page_tables
+
 #Translates the virtual task address space into the physical address space
 def generate_translation(memory_size, cache_size, block_size, mapping,
-                            input_trace, shared):
+                            input_trace, shared, page_size):
     #Parse the File
     print('Parsing File...')
     task_map,trace = parse_trace(input_trace)
+    print('task map from trace', task_map)
     if task_map != {}:
         #Build the translation table
         print('Building translation table...')
@@ -217,13 +265,17 @@ def generate_translation(memory_size, cache_size, block_size, mapping,
     myCache = cache.cache(cache_size, block_size, mapping)
     print('Cache Stats: Size: ', myCache.cacheSize, 'Block Size: ', myCache.blockSize, 'Mapping: ', myCache.cacheMap)
 
+    print('Building Page Tables (one per task)...')
+    page_tables = build_page_tables(task_map, memory_size, cache_size, block_size, mapping, page_size)
+    print(page_tables)
     # Run trace through cache
     print('Running trace...')
     if shared:
         # When shared, we didn't have to do any translation
         results = run_shared_trace(phys_trace, myCache)
     else:
-        results = run_trace(phys_trace, myCache)
+        #results = run_trace(phys_trace, myCache)
+        results = run_trace_with_page_table(phys_trace, myCache, page_tables)
     print(results.keys())
     print('Making stats...')
     stats = make_stats(results)

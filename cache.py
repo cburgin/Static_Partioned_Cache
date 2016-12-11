@@ -115,5 +115,10 @@ class cache:
             for i in curr_set:
                 i['valid'] = 0
 
+    def mark_line_invalid(self,address):
+        curr_set = int((address / self.blockSize) % self.numSets)
+        for i in self.cache[curr_set]:
+            i['valid'] = 0
+
     def display_cache(self):
         pass

@@ -56,6 +56,10 @@ def main():
     parser.add_argument('-o', '--output-filename', dest='output_filename', metavar='N',
                         nargs='?', default='trace_'+str(random.randint(0,10000)),
                         help='provide a filename. Default=trace_(random num)).')
+    parser.add_argument('-p', '--pagesize', dest='page_size', metavar='L', type=int,
+                        nargs='?', default=1024,
+                        help='provide the length of the page table sizes. Default=1024.')
+
 
     #Parse the input arguments
     args = parser.parse_args()
@@ -71,7 +75,7 @@ def main():
 
     #Translate the virtual task addresses to the physical memory space. AND simulate the cache
     output = translator.generate_translation(args.memory_size, args.cache_size,
-                        args.block_size, args.mapping, trace, args.shared)
+                        args.block_size, args.mapping, trace, args.shared, args.page_size)
     write_stats_file(args.output_filename, output)
 
 if __name__ =='__main__':
