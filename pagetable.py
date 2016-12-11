@@ -20,9 +20,10 @@ class PageTable():
         self.offset_mask = ((2**self.offset_bits) - 1)
         self.tag_bits = int(math.log(self.memory_size,2))-self.set_bits-self.offset_bits
         self.page_bits = int(math.log(self.page_size,2))
+        self.page_mask = ((2**self.page_bits) - 1)
         self.color_bits = (self.set_bits + self.offset_bits) - self.page_bits
         self.color_mask = self.__build_color_mask(color_bits, set_bits)
-        self.virt_page_num_bits = int(math.log(self.memory_size,2)) - self.offset_bits
+        self.virt_page_num_bits = int(math.log(self.memory_size,2)) - self.page_bits
 
         # Get colors for this PageTable
         self.colors = self.__get_colors(self.allowed_sets, self.color_bits, self.set_bits)
@@ -37,8 +38,8 @@ class PageTable():
     # phys_addr - the physical address to send to the cache
     def translate(self, virt_addr):
         # Get virtual page and offset
-        virt_page_num = virt_addr >> self.offset_bits
-        offset = virt_addr & self.offset_mask
+        virt_page_num = virt_addr >> self.page_bits
+        page_offset = virt_addr & self.page_mask
         # Figure out the virtual addrs color
         virt_page_color = (virt_page_num & self.color_mask)>>(self.set_bits - self.color_bits)
 
