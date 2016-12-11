@@ -19,6 +19,7 @@
 # Print report
 
 import pprint
+import copy
 
 
 # parse the trace file from generator
@@ -123,13 +124,17 @@ def run_trace(trace):
     for element in trace:
         taskid = element[0]
         if taskid not in results.keys():
-            results[taskid] = {'total':0,'hit':0,'miss':0}
+            results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}}
         results[taskid]['total'] += 1
-
-        if myCache.simulate_element(element[1:]):
+        hitmiss_result,curr_set,curr_tag = myCache.simulate_element(element[1:])
+        if hitmiss_result:
             results[taskid]['hit'] += 1
         else:
             results[taskid]['miss'] += 1
+            if (curr_set,curr_tag) in results[taskid]['misspairs'].keys():
+                results[taskid]['misspairs'][(curr_set,curr_tag)] += 1
+            else:
+                results[taskid]['misspairs'][(curr_set,curr_tag)] = 1
 
     return results
 
@@ -160,13 +165,17 @@ def run_shared_trace(trace):
             num_context_switches += 1
 
         if taskid not in results.keys():
-            results[taskid] = {'total':0,'hit':0,'miss':0}
+            results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}}
         results[taskid]['total'] += 1
-
-        if myCache.simulate_element(element[1:]):
+        hitmiss_result,curr_set,curr_tag = myCache.simulate_element(element[1:])
+        if hitmiss_result:
             results[taskid]['hit'] += 1
         else:
             results[taskid]['miss'] += 1
+            if (curr_set,curr_tag) in results[taskid]['misspairs'].keys():
+                results[taskid]['misspairs'][(curr_set,curr_tag)] += 1
+            else:
+                results[taskid]['misspairs'][(curr_set,curr_tag)] = 1
     print("number of context switches: ", num_context_switches)
     return results
 
@@ -176,20 +185,17 @@ def make_stats(results):
     format_str = '{:>6} {:>8} {:>8} {:>8} {:>10.4f}\n'
     stats = stats + header
     # sorted(results.key(), key=int) returns the dict keys in integer order
+    # keys are taskids
     for key in sorted(results.keys(), key=int):
         stats = stats + format_str.format(key, results[key]['total'], results[key]['hit'], results[key]['miss'], results[key]['hit']/float(results[key]['total']))
     return stats
 
-def write_stats_file(filename, stats):
-    root = filename.split('.')[0]
-    results_file = root + '.results'
-    f = open(results_file, 'w')
-    f.write("Trace: " + filename + '\n')
-    f.write(stats)
-    f.close()
+def make_miss_stats(results):
+    for key in sorted(results.keys(), key=int):
+        print(key, len(results[key]['misspairs']))
 
 #Translates the virtual task address space into the physical address space
-def generate_translation(memory_size, input_trace, filename, shared):
+def generate_translation(memory_size, input_trace, shared):
     #Parse the File
     print('Parsing File...')
     task_map,trace = parse_trace(input_trace)
@@ -209,13 +215,15 @@ def generate_translation(memory_size, input_trace, filename, shared):
         results = run_shared_trace(phys_trace)
     else:
         results = run_trace(phys_trace)
-    print(results)
+    #print(results)
     print('Making stats...')
     stats = make_stats(results)
     print(stats)
-    print('Writing File')
-    print('Filename: '+filename)
-    write_stats_file('results/'+filename+'.result', stats)
+    make_miss_stats(results)
+    #print('Writing File')
+    #print('Filename: '+filename)
+    #write_stats_file('results/'+filename+'.result', stats)
+    return stats
 
 # # Kick off the show
 # def main():

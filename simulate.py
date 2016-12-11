@@ -10,6 +10,16 @@ import translator
 def auto_int(x):
     return int(x,0)
 
+def write_stats_file(filename, stats):
+    f = open(filename, 'w')
+    f.write("Trace: " + filename + '\n')
+    f.write(stats)
+    f.close()
+
+def read_trace_file(filename):
+    f = open(filename, 'r')
+    return f.read()
+
 def main():
     #Parse the command line arguments provided at run time.
     parser = argparse.ArgumentParser(description='Simulates the static partioned cache.')
@@ -31,7 +41,7 @@ def main():
     parser.add_argument('-t', '--taskids', dest='task_IDs', metavar='T',
                         nargs='?', default='8-0x2000000',
                         help='provide the task mapping. Default=8-0x2000000.')
-    parser.add_argument('-n', '--name', dest='filename', metavar='N',
+    parser.add_argument('-n', '--filename', dest='filename', metavar='N',
                         nargs='?', default='trace_'+str(random.randint(0,10000)),
                         help='provide a filename. Default=trace_(random num)).')
     parser.add_argument('-s', '--shared', dest='shared',
@@ -43,6 +53,9 @@ def main():
     parser.add_argument('-x', '--use-existing-trace', dest='existing',
                         default=False, action='store_true',
                         help='Add Flag to make the cache shared')
+    parser.add_argument('-o', '--output-filename', dest='output_filename', metavar='N',
+                        nargs='?', default='trace_'+str(random.randint(0,10000)),
+                        help='provide a filename. Default=trace_(random num)).')
 
     #Parse the input arguments
     args = parser.parse_args()
@@ -55,12 +68,8 @@ def main():
         trace = trace_generator.generate_trace(args.memory_size, args.trace_length, args.task_IDs, args.filename, args.trace_alg, args.shared)
 
     #Translate the virtual task addresses to the physical memory space. AND simulate the cache
-    translator.generate_translation(args.memory_size, trace, args.filename, args.shared)
-
-
-def read_trace_file(filename):
-    f = open(filename, 'r')
-    return f.read()
+    output = translator.generate_translation(args.memory_size, trace, args.shared)
+    write_stats_file(args.output_filename, output)
 
 if __name__ =='__main__':
     main()

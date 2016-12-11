@@ -108,7 +108,7 @@ class cache:
                 self.cache[curr_set][index]['tag'] = curr_tag
                 self.cache[curr_set][index]['valid'] = 1
 
-        return cacheHit
+        return cacheHit,curr_set,curr_tag
 
     def mark_invalid(self):
         for curr_set in self.cache:
