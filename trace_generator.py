@@ -271,7 +271,7 @@ def generate_trace(memory_size, cache_size, block_size, mapping, trace_length,
     out_file = task_addrs + output
     f.write(out_file)
     f.close
-    return out_file
+    return task_map,out_file
 
 # # Do everything
 # def main():

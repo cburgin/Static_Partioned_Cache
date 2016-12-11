@@ -66,15 +66,15 @@ def main():
     print(args)
 
     if args.existing:
-        trace = read_trace_file(args.filename)
+        task_map,trace = read_trace_file(args.filename)
     else:
         #Generate the traces
-        trace = trace_generator.generate_trace(args.memory_size, args.cache_size,
+        task_map,trace = trace_generator.generate_trace(args.memory_size, args.cache_size,
                         args.block_size, args.mapping, args.trace_length,
                         args.task_IDs, args.filename, args.trace_alg, args.shared)
 
     #Translate the virtual task addresses to the physical memory space. AND simulate the cache
-    output = translator.generate_translation(args.memory_size, args.cache_size,
+    output = translator.generate_translation(task_map,args.memory_size, args.cache_size,
                         args.block_size, args.mapping, trace, args.shared, args.page_size)
     write_stats_file(args.output_filename, output)
 

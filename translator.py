@@ -243,11 +243,11 @@ def build_page_tables(task_map, memory_size, cache_size, block_size, mapping, pa
     return page_tables
 
 #Translates the virtual task address space into the physical address space
-def generate_translation(memory_size, cache_size, block_size, mapping,
+def generate_translation(task_map,memory_size, cache_size, block_size, mapping,
                             input_trace, shared, page_size):
     #Parse the File
     print('Parsing File...')
-    task_map,trace = parse_trace(input_trace)
+    empty_task_map,trace = parse_trace(input_trace)
     print('task map from trace', task_map)
     if task_map != {}:
         #Build the translation table
