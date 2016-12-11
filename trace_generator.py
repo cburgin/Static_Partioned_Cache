@@ -69,26 +69,27 @@ def build_evil_element_list(task_map):
                 #print("tag_base: ",tag_base, "tag_offset",tag_offset)
     return element_list
 
+# Build a list of elements based on the current cache and tasks
 def build_set_element_list(task_map, cache_size, block_size, mapping, memory_size):
     element_list=[]
-    # cache_size = 4096
-    # block_size = 8
-    # mapping = 1
-    # memory_size = 0x400000
+    # Get the cache geometry
     num_sets = calc_num_sets(cache_size, block_size, mapping)
     set_bits = int(math.log(num_sets,2))
     offset_bits = int(math.log(block_size,2))
     tag_bits = int(math.log(memory_size,2))-set_bits-offset_bits
+    # Pick a task for this element_list
     taskid = random.choice(list(task_map.keys()))
+    # Get the allowed sets (color) of that task
     low_set = task_map[taskid][0]
     high_set = task_map[taskid][1]
+    # Pick a number of instructions (sequential) for this element_list
     num_instructions = random.choice(range(1,32))
-    # Pick a set allowed to that task
+    # Build the base address, make it fall in this task's partition
     base_addr = random.choice(range(2**tag_bits))
     curr_set = random.choice(range(low_set,high_set+1))
     offset = random.choice(range(block_size))
+    # Build sequential instructions -- make sure they stay in this tasks color
     for i in range(num_instructions):
-        # Figure out a random address in a valid set
         curr_set = low_set + ((curr_set + (offset+i // block_size)) % (high_set - low_set + 1))
         offset = (offset+i) % block_size
         addr = (base_addr << set_bits) + curr_set
@@ -199,12 +200,17 @@ def task_map_from_string(map_string, shared, memory_size, cache_size, block_size
             print('---TOO MUCH MEM REQUESTED--- ', sets_percent)
             return 0
 
-    base_set = 0
-    for taskid in task_map.keys():
-        start_set = base_set
-        end_set = int(start_set + (num_sets*task_map[taskid]-1))
-        base_set = end_set + 1    # next unused set
-        task_map[taskid]=(start_set,end_set)
+        base_set = 0
+        for taskid in task_map.keys():
+            start_set = base_set
+            end_set = int(start_set + (num_sets*task_map[taskid]-1))
+            base_set = end_set + 1    # next unused set
+            task_map[taskid]=(start_set,end_set)
+    else:
+        base_set = 0
+        for taskid in task_map.keys():
+            # All tasks get all sets
+            task_map[taskid]=(base_set,num_sets-1)
 
     print(task_map)
     return task_map
