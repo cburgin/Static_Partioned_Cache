@@ -13,6 +13,10 @@ python3 simulate.py -c 4096 -b 8 -m 1 -r 0x100000 -l 50000 -t "4-0x40000" -n "40
 python3 simulate.py -c 4096 -b 8 -m 1 -r 0x100000 -l 5000 -t "1-0x80000,4-0x20000
 " -n "4096_8_1_1M_1x512k_4x128k_5000-shared" --output-filename results/4096_8_1_1M_1x512k_4x128k_5000-shared.results --tracealgorithm 'set' --pagesize 1024
 
+# Partitioned with Even Slots
+# 1M
+python3 simulate.py -c 4096 -b 8 -m 1 -r 0x100000 -l 5000 -t "8-0x20000" -n "4096_8_1_1M_8x128k_5000-virt" --output-filename results/4096_8_1_1M_8x128k_5000-virt.results --tracealgorithm 'virt' --pagesize 1024
+
 # Good results with page table
 python3 simulate.py -c 131072 -b 32 -m 1 -r 0x100000 -l 5000 -t "1-0xC0000,2-0x20000" -n "131072_32_1_1M_1x768k_2x128k_5000-virt" --output-filename results/131072_32_1_1M_1x768k_2x128k_5000-virt.results --tracealgorithm 'virt' --pagesize 4096
 

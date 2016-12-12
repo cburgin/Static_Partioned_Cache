@@ -126,6 +126,7 @@ class cache:
         for curr_set in range(low_set, high_set+1):
             for i in self.cache[curr_set]:
                 i['valid'] = 0
+                i['tag'] = 0
 
     def display_cache(self):
         pass

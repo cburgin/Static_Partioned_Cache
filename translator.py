@@ -112,9 +112,10 @@ def translate_trace_file(translate_table, virt_trace):
         phys_trace.append(phys_element)
     return phys_trace
 
-def run_trace_with_page_table(trace, myCache, page_tables, task_map):
+def run_trace_with_page_table(trace, myCache, page_tables, task_map, shared):
     results ={}
     previous_taskid = 0
+    preemption_count = 0
     # for every element in the trace
     #   1. grab ID
     #   2. convert addr with page table
@@ -126,9 +127,13 @@ def run_trace_with_page_table(trace, myCache, page_tables, task_map):
         if (index % 100000) == 0:
             print('still working...', index)
         taskid = int(element[0])
-        # if taskid != previous_taskid:
-        #     myCache.mark_partition_invalid(task_map[taskid])
-        #     previous_taskid = taskid
+        # If cache is shared, preemption needs to happen to task changes
+        if shared:
+            if taskid != previous_taskid:
+                myCache.mark_partition_invalid(task_map[taskid])
+                previous_taskid = taskid
+                preemption_count += 1
+
         # Create a results entry if one doesn't exist
         if taskid not in results.keys():
             results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}, 'marked_invalid':0}
@@ -153,6 +158,7 @@ def run_trace_with_page_table(trace, myCache, page_tables, task_map):
             else:
                 results[taskid]['misspairs'][(curr_set,curr_tag)] = 1
 
+    print('Preemption count: ', preemption_count)
     return results
 
 # Run a physical trace through the cache, report metrics
@@ -241,7 +247,6 @@ def new_parse(input_trace):
 
 def build_page_tables(task_map, memory_size, cache_size, block_size, mapping, page_size):
     page_tables = {}
-    print('inside build page tables',task_map)
     for taskid in task_map.keys():
         # allowed_sets is the data in task_map dict at key taskid
         page_tables[taskid] = pagetable.PageTable(memory_size, cache_size, block_size,
@@ -274,17 +279,13 @@ def generate_translation(task_map,memory_size, cache_size, block_size, mapping,
 
     print('Building Page Tables (one per task)...')
     page_tables = build_page_tables(task_map, memory_size, cache_size, block_size, mapping, page_size)
-    print(page_tables)
+
     for taskid in page_tables.keys():
         print(taskid, page_tables[taskid].allowed_sets, page_tables[taskid].colors)
     # Run trace through cache
     print('Running trace...')
-    if shared:
-        # When shared, we didn't have to do any translation
-        results = run_shared_trace(phys_trace, myCache)
-    else:
-        #results = run_trace(phys_trace, myCache)
-        results = run_trace_with_page_table(phys_trace, myCache, page_tables, task_map)
+
+    results = run_trace_with_page_table(phys_trace, myCache, page_tables, task_map, shared)
     print(results.keys())
     print('Making stats...')
     stats = make_stats(results)
