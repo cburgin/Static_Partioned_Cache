@@ -49,9 +49,6 @@ def build_rand_element_list(task_map):
 
 #Builds a set random element list
 def build_set_evil_element_list(task_map, cache_size, block_size, mapping, memory_size):
-    # Amount of offsets that should be written to
-    evil_offset_count = 1
-
     # Get the cache geometry
     num_sets = calc_num_sets(cache_size, block_size, mapping)
     set_bits = int(math.log(num_sets,2))
@@ -67,23 +64,46 @@ def build_set_evil_element_list(task_map, cache_size, block_size, mapping, memor
         task_size_list.append((high_set - low_set)+1)
 
     # Get the minimum task space size
-    min_size = min(task_size_list)
+    max_size = max(task_size_list)
 
     # Calculate the operations to occur in a trace
     element_list = []
     for taskid in task_map.keys():
-        # Loop for the min task size.
-        for i in range(min_size):
-            # Create j operations that are at different offsets
-            for j in range(evil_offset_count+1):
-                element = []
-                #(r/w, task id, address)
-                element.append(random.choice(rw_options))
-                element.append(taskid)
-                element.append()
-                #Append the operation and a mirriored operation to the list
-                element_list.append(element)
-                element_list.append(build_opposite_element(element))
+        # Loop for the max task size and reads and write to the cache
+        low_set = task_map[taskid][0]
+        high_set = task_map[taskid][1]
+        curr_task_size = (high_set - low_set)+1
+        #Perform reads first
+        for i in range(max_size):
+            element = []
+            #perform reads first.
+            element.append(rw_options[0])
+            element.append(taskid)
+            curr_offset = 0
+            curr_set = i % curr_task_size
+            curr_tag = i // curr_task_size
+            #Build address
+            curr_set = curr_set + low_set #Add the current set offset
+            address = (curr_tag << set_bits) + curr_set #Shift in the tag
+            address = (address << offset_bits) + curr_offset #Shift in the set and add offset
+            element.append(address)
+            element_list.append(element)
+
+        # Perform writes after the reads
+        for i in range(max_size):
+            element = []
+            #perform reads first.
+            element.append(rw_options[1])
+            element.append(taskid)
+            curr_offset = 0
+            curr_set = i % curr_task_size
+            curr_tag = i // curr_task_size
+            #Build address
+            curr_set = curr_set + low_set #Add the current set offset
+            address = (curr_tag << set_bits) + curr_set #Shift in the tag
+            address = (address << offset_bits) + curr_offset #Shift in the set and add offset
+            element.append(address)
+            element_list.append(element)
 
     return element_list
 
@@ -285,7 +305,7 @@ def generate_trace(memory_size, cache_size, block_size, mapping, trace_length,
     out_file = task_addrs + output
     f.write(out_file)
     f.close
-    return task_map,out_file
+    return out_file
 
 # # Do everything
 # def main():
