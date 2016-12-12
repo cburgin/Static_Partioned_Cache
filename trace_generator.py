@@ -200,7 +200,7 @@ def build_opposite_element(element):
 
 def build_trace(length, task_map, trace_alg, cache_size, block_size, mapping, memory_size):
     trace_algorithm = { 'std':build_rand_element_list,
-                        'evil':build_evil_element_list,
+                        'evil':build_set_evil_element_list,
                         'set':build_set_element_list,
                         'virt':build_virt_set_element_list}
     trace = []
@@ -305,7 +305,7 @@ def generate_trace(memory_size, cache_size, block_size, mapping, trace_length,
     out_file = task_addrs + output
     f.write(out_file)
     f.close
-    return out_file
+    return task_map,out_file
 
 # # Do everything
 # def main():
