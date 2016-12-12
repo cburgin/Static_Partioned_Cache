@@ -77,8 +77,8 @@ def build_set_evil_element_list(task_map, cache_size, block_size, mapping, memor
         for i in range(max_size):
             element = []
             #perform reads first.
-            element.append(rw_options[0])
             element.append(taskid)
+            element.append(rw_options[0])
             curr_offset = 0
             curr_set = i % curr_task_size
             curr_tag = i // curr_task_size
@@ -93,8 +93,8 @@ def build_set_evil_element_list(task_map, cache_size, block_size, mapping, memor
         for i in range(max_size):
             element = []
             #perform reads first.
-            element.append(rw_options[1])
             element.append(taskid)
+            element.append(rw_options[1])
             curr_offset = 0
             curr_set = i % curr_task_size
             curr_tag = i // curr_task_size
