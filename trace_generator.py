@@ -132,7 +132,7 @@ def build_evil_element_list(task_map):
 def build_virt_set_element_list(task_map, cache_size, block_size, mapping, memory_size):
     element_list = []
     taskid = random.choice(list(task_map.keys()))
-    num_instructions = random.choice(range(1,32))
+    num_instructions = random.choice(range(1,8))
     addr = random.choice(range(memory_size))
     for i in range(num_instructions):
         element = []

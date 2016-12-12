@@ -21,6 +21,9 @@ class cache:
         #Create a 2D array for the lru
         self.lru = [[0 for x in range(self.cacheMap)] for y in range(self.numSets)]
 
+        # Data tracking
+        self.partition_invalidates = 0
+        self.cache_invalidates = 0
     #Accepts a single atomic operation and runs it through the cache.
     def simulate_element(self, element):
         cacheHit = False
@@ -124,6 +127,7 @@ class cache:
     def mark_partition_invalid(self,allowed_sets):
         low_set = allowed_sets[0]
         high_set = allowed_sets[1]
+        self.partition_invalidates += 1
         for curr_set in range(low_set, high_set+1):
             for i in self.cache[curr_set]:
                 i['valid'] = 0

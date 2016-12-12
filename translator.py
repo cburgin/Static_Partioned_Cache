@@ -114,7 +114,7 @@ def translate_trace_file(translate_table, virt_trace):
 
 def run_trace_with_page_table(trace, myCache, page_tables, task_map, shared):
     results ={}
-    previous_taskid = 0
+    partition_previous_taskid = {}
     preemption_count = 0
     # for every element in the trace
     #   1. grab ID
@@ -128,10 +128,27 @@ def run_trace_with_page_table(trace, myCache, page_tables, task_map, shared):
             print('still working...', index)
         taskid = int(element[0])
         # If tasks are sharing a partition, preemption occurs - invalidate partition
-        if (taskid != previous_taskid) and (task_map[taskid] == task_map[previous_taskid]):
-            myCache.mark_partition_invalid(task_map[taskid])
+        # if (taskid != previous_taskid) and (task_map[taskid] == task_map[previous_taskid]):
+        #     myCache.mark_partition_invalid(task_map[taskid])
+        #     previous_taskid = taskid
+        #     preemption_count += 1
+
+        # Check if tasks are sharing a partition by looking at their colors
+        if tuple(page_tables[taskid].colors) not in partition_previous_taskid.keys():
+            # If a color set has never been seen add it to the tracker
+            partition_previous_taskid[tuple(page_tables[taskid].colors)] = taskid
             previous_taskid = taskid
-            preemption_count += 1
+        else:
+            # If a color set has been seen, see if it was previously accessed by same task
+            if (taskid != partition_previous_taskid[tuple(page_tables[taskid].colors)]):
+                # If it is a different task, we invalidate the cache cause preemption occurred
+                for tid in task_map.keys():
+                    if page_tables[tid].colors == page_tables[taskid].colors:
+                        myCache.mark_partition_invalid(task_map[tid])
+                previous_taskid = taskid
+                partition_previous_taskid[tuple(page_tables[taskid].colors)] = taskid
+                preemption_count += 1
+
 
         # Create a results entry if one doesn't exist
         if taskid not in results.keys():
@@ -158,6 +175,8 @@ def run_trace_with_page_table(trace, myCache, page_tables, task_map, shared):
                 results[taskid]['misspairs'][(curr_set,curr_tag)] = 1
 
     print('Preemption count: ', preemption_count)
+    print('partition_previous_taskid')
+    pprint.pprint(partition_previous_taskid)
     return results
 
 # Run a physical trace through the cache, report metrics
@@ -290,6 +309,7 @@ def generate_translation(task_map,memory_size, cache_size, block_size, mapping,
     stats = make_stats(results)
     print(stats)
     make_miss_stats(results)
+    print('Partition invalidates', myCache.partition_invalidates)
     #print('Writing File')
     #print('Filename: '+filename)
     #write_stats_file('results/'+filename+'.result', stats)
