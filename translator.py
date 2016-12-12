@@ -122,7 +122,9 @@ def run_trace_with_page_table(trace, myCache, page_tables, task_map):
     #   4. pass RW and Addr to cache
     #   5. Get hit/miss
     #   6. Record Results
-    for element in trace:
+    for index,element in enumerate(trace):
+        if (index % 100000) == 0:
+            print('still working...', index)
         taskid = int(element[0])
         # if taskid != previous_taskid:
         #     myCache.mark_partition_invalid(task_map[taskid])

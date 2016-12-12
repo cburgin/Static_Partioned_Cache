@@ -32,7 +32,8 @@ class PageTable():
         # Get colors for this PageTable
         self.colors = self.__get_colors(self.allowed_sets, self.color_bits, self.set_bits)
 
-        self.page_table = [{'valid':0,'physical_page':0} for x in range(self.memory_size)]
+        #self.page_table = [{'valid':0,'physical_page':0} for x in range(self.memory_size)]
+        self.page_table = {}
         self.recolor_map = {}
 
     # Translate a virtual addr to a physical addr in one of the allowed pages
@@ -76,7 +77,8 @@ class PageTable():
             # Change the address color
             new_virt_page_num = self.__change_color(virt_page_num, new_color)
             # If we had a page here, we need to make  invalid
-            self.page_table[new_virt_page_num]['valid'] = 0
+            if new_virt_page_num in self.page_table.keys():
+                self.page_table[new_virt_page_num]['valid'] = 0
             # Now do the lookup
             present,phys_addr = self.__table_lookup(new_virt_page_num, page_offset)
             return present,phys_addr
@@ -91,16 +93,24 @@ class PageTable():
 
     # table lookup -- to shorten the lenght of translate
     def __table_lookup(self, virt_page_num, page_offset):
-        if self.page_table[virt_page_num]['valid'] == 0:
-            # page isnt in the table, lets add it
-            self.page_table[virt_page_num]['valid'] = 1
-            self.page_table[virt_page_num]['physical_page'] = virt_page_num
-            phys_addr = (self.page_table[virt_page_num]['physical_page']<<self.page_bits)+page_offset
-            return False, phys_addr
-        else:
-            # page is already here
-            phys_addr = (self.page_table[virt_page_num]['physical_page']<<self.page_bits)+page_offset
-            return True, phys_addr
+        if virt_page_num < self.memory_size:
+            if virt_page_num in self.page_table.keys():
+                if self.page_table[virt_page_num]['valid'] == 0:
+                    # page isnt in the table, lets add it
+                    self.page_table[virt_page_num]['valid'] = 1
+                    self.page_table[virt_page_num]['physical_page'] = virt_page_num
+                    phys_addr = (self.page_table[virt_page_num]['physical_page']<<self.page_bits)+page_offset
+                    return False, phys_addr
+                else:
+                    # page is already here
+                    phys_addr = (self.page_table[virt_page_num]['physical_page']<<self.page_bits)+page_offset
+                    return True, phys_addr
+            else:
+                self.page_table[virt_page_num] = {'valid':0,'physical_page':0}
+                self.page_table[virt_page_num]['valid'] = 1
+                self.page_table[virt_page_num]['physical_page'] = virt_page_num
+                phys_addr = (self.page_table[virt_page_num]['physical_page']<<self.page_bits)+page_offset
+                return False, phys_addr
 
     # Figure out allowed color bits from allowed sets and total sets
     def __get_colors(self, allowed_sets, color_bits, set_bits):
