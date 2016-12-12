@@ -119,6 +119,7 @@ class cache:
         curr_set = int((address / self.blockSize) % self.numSets)
         for i in self.cache[curr_set]:
             i['valid'] = 0
+            i['tag'] = 0
 
     def mark_partition_invalid(self,allowed_sets):
         low_set = allowed_sets[0]
