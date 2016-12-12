@@ -53,22 +53,32 @@ class PageTable():
             present,phys_addr = self.__table_lookup(virt_page_num, page_offset)
             return present,phys_addr
         else:
-            # See if we have mapped this before -- and give same result
-            if virt_page_num in self.recolor_map.keys():
-                # We have seen this exact request before return its value
-                present,phys_addr = self.__table_lookup(self.recolor_map[virt_page_num], page_offset)
-            else:
-                # we need to convert it to an address with the right color
-                # and somehow notify the cache its really diff/new data
-                # Pick a color to use
-                new_color = random.choice(self.colors)
-                # Change the address color
-                new_virt_page_num = self.__change_color(virt_page_num, new_color)
-                # If we had a page here, we need to make  invalid
-                self.page_table[new_virt_page_num]['valid'] = 0
-                self.recolor_map[virt_page_num] = new_virt_page_num
-                # Now do the lookup
-                present,phys_addr = self.__table_lookup(new_virt_page_num, page_offset)
+            # # See if we have mapped this before -- and give same result
+            # if virt_page_num in self.recolor_map.keys():
+            #     # We have seen this exact request before return its value
+            #     present,phys_addr = self.__table_lookup(self.recolor_map[virt_page_num], page_offset)
+            #     #print('used a recolor')
+            # else:
+            #     # we need to convert it to an address with the right color
+            #     # and somehow notify the cache its really diff/new data
+            #     # Pick a color to use
+            #     new_color = random.choice(self.colors)
+            #     # Change the address color
+            #     new_virt_page_num = self.__change_color(virt_page_num, new_color)
+            #     # If we had a page here, we need to make  invalid
+            #     self.page_table[new_virt_page_num]['valid'] = 0
+            #     self.recolor_map[virt_page_num] = new_virt_page_num
+            #     # Now do the lookup
+            #     present,phys_addr = self.__table_lookup(new_virt_page_num, page_offset)
+
+            # Pick a color to use
+            new_color = random.choice(self.colors)
+            # Change the address color
+            new_virt_page_num = self.__change_color(virt_page_num, new_color)
+            # If we had a page here, we need to make  invalid
+            self.page_table[new_virt_page_num]['valid'] = 0
+            # Now do the lookup
+            present,phys_addr = self.__table_lookup(new_virt_page_num, page_offset)
             return present,phys_addr
 
     def __change_color(self, virt_page_num, new_color):
