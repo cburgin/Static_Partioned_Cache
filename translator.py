@@ -124,15 +124,14 @@ def run_trace_with_page_table(trace, myCache, page_tables, task_map, shared):
     #   5. Get hit/miss
     #   6. Record Results
     for index,element in enumerate(trace):
-        if (index % 100000) == 0:
+        if (index % 10000) == 0:
             print('still working...', index)
         taskid = int(element[0])
-        # If cache is shared, preemption needs to happen to task changes
-        if shared:
-            if taskid != previous_taskid:
-                myCache.mark_partition_invalid(task_map[taskid])
-                previous_taskid = taskid
-                preemption_count += 1
+        # If tasks are sharing a partition, preemption occurs - invalidate partition
+        if (taskid != previous_taskid) and (task_map[taskid] == task_map[previous_taskid]):
+            myCache.mark_partition_invalid(task_map[taskid])
+            previous_taskid = taskid
+            preemption_count += 1
 
         # Create a results entry if one doesn't exist
         if taskid not in results.keys():
