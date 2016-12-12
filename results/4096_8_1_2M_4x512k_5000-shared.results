@@ -1,6 +1,0 @@
-Trace: results/4096_8_1_2M_4x512k_5000-shared.results
-TaskID Requests     Hits   Misses   Hit Rate
-     0    19284       33    19251     0.0017
-     1    19614       41    19573     0.0021
-     2    20658       39    20619     0.0019
-     3    20128       46    20082     0.0023

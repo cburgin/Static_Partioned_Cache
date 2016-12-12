@@ -1,5 +1,0 @@
-Trace: results/4096_8_1_1M_1x512k_2x256k_500-virt.results
-TaskID Requests     Hits   Misses   Hit Rate
-     0     2912     1597     1315     0.5484
-     1     2771     1218     1553     0.4396
-     2     2709     1305     1404     0.4817
