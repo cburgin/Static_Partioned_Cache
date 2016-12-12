@@ -112,9 +112,9 @@ def translate_trace_file(translate_table, virt_trace):
         phys_trace.append(phys_element)
     return phys_trace
 
-def run_trace_with_page_table(trace, myCache, page_tables):
+def run_trace_with_page_table(trace, myCache, page_tables, task_map):
     results ={}
-
+    previous_taskid = 0
     # for every element in the trace
     #   1. grab ID
     #   2. convert addr with page table
@@ -124,9 +124,12 @@ def run_trace_with_page_table(trace, myCache, page_tables):
     #   6. Record Results
     for element in trace:
         taskid = int(element[0])
+        # if taskid != previous_taskid:
+        #     myCache.mark_partition_invalid(task_map[taskid])
+        #     previous_taskid = taskid
         # Create a results entry if one doesn't exist
         if taskid not in results.keys():
-            results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}}
+            results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}, 'marked_invalid':0}
         results[taskid]['total'] += 1
         # Use the page table to update the address with the physical address
         valid,element[2] = page_tables[taskid].translate(element[2])
@@ -137,6 +140,7 @@ def run_trace_with_page_table(trace, myCache, page_tables):
             # If the addr was invalid in the page table, invalidate the cache line
             myCache.mark_line_invalid(element[2])
             hitmiss_result,curr_set,curr_tag = myCache.simulate_element(element[1:])
+            results[taskid]['marked_invalid'] += 1
 
         if hitmiss_result:
             results[taskid]['hit'] += 1
@@ -228,7 +232,7 @@ def make_miss_stats(results):
     print("Number of unique curr_set,curr_tag pairs that missed per taskid")
     for key in sorted(results.keys(), key=int):
         ordered_miss_pairs_by_set = sorted(results[key]['misspairs'].keys())
-        print(key, len(ordered_miss_pairs_by_set), ordered_miss_pairs_by_set[0], ordered_miss_pairs_by_set[-1])
+        print(key, len(ordered_miss_pairs_by_set), ordered_miss_pairs_by_set[0], ordered_miss_pairs_by_set[-1], results[key]['marked_invalid'])
 
 def new_parse(input_trace):
     return input_trace
@@ -278,7 +282,7 @@ def generate_translation(task_map,memory_size, cache_size, block_size, mapping,
         results = run_shared_trace(phys_trace, myCache)
     else:
         #results = run_trace(phys_trace, myCache)
-        results = run_trace_with_page_table(phys_trace, myCache, page_tables)
+        results = run_trace_with_page_table(phys_trace, myCache, page_tables, task_map)
     print(results.keys())
     print('Making stats...')
     stats = make_stats(results)

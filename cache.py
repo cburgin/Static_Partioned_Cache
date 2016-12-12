@@ -120,5 +120,12 @@ class cache:
         for i in self.cache[curr_set]:
             i['valid'] = 0
 
+    def mark_partition_invalid(self,allowed_sets):
+        low_set = allowed_sets[0]
+        high_set = allowed_sets[1]
+        for curr_set in range(low_set, high_set+1):
+            for i in self.cache[curr_set]:
+                i['valid'] = 0
+
     def display_cache(self):
         pass
