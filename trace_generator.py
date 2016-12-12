@@ -293,18 +293,23 @@ def task_map_from_string(map_string, shared, memory_size, cache_size, block_size
 def generate_trace(memory_size, cache_size, block_size, mapping, trace_length,
                     task_id, filename, trace_alg, shared):
     #Parse the task ID mapping and generate a task map
+    print('Building task map...')
     task_map = task_map_from_string(task_id, shared, memory_size, cache_size, block_size, mapping)
     #Generate the trace list
+    print('Building trace...')
     trace = build_trace(trace_length, task_map, trace_alg, cache_size, block_size, mapping, memory_size)
     #task_addrs = pretty_task_map(task_map)
+    print('Making the trace pretty')
     task_addrs = ''
     output = pretty_trace(trace)
 
     #Write to file
+    print('Writing trace file...')
     f = open('traces/'+filename+'.trace', 'w')
     out_file = task_addrs + output
     f.write(out_file)
     f.close
+    print('Exiting trace generator...')
     return task_map,out_file
 
 # # Do everything
