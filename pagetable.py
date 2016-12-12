@@ -46,7 +46,7 @@ class PageTable():
         page_offset = virt_addr & self.page_mask
         # Figure out the virtual addrs color
         virt_page_color = (virt_page_num & self.color_mask)
-        print('virt_page_color', virt_page_color)
+        #print('virt_page_color', virt_page_color)
         # See if the color is on this page table
         if virt_page_color in self.colors:
             # color is valid - Do a table lookup
@@ -96,8 +96,8 @@ class PageTable():
     def __get_colors(self, allowed_sets, color_bits, set_bits):
         lowest_set = allowed_sets[0]
         highest_set = allowed_sets[1]
-        low_color = (lowest_set & self.color_mask)>>(set_bits - color_bits)
-        high_color = (highest_set & self.color_mask)>>(set_bits - color_bits)
+        low_color = (lowest_set)>>(set_bits - color_bits)
+        high_color = (highest_set)>>(set_bits - color_bits)
         colors = list(range(low_color,high_color+1))
         return colors
 

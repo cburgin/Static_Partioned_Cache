@@ -123,7 +123,7 @@ def run_trace_with_page_table(trace, myCache, page_tables):
     #   5. Get hit/miss
     #   6. Record Results
     for element in trace:
-        taskid = element[0]
+        taskid = int(element[0])
         # Create a results entry if one doesn't exist
         if taskid not in results.keys():
             results[taskid] = {'total':0,'hit':0,'miss':0,'misspairs':{}}
@@ -249,17 +249,18 @@ def generate_translation(task_map,memory_size, cache_size, block_size, mapping,
     print('Parsing File...')
     empty_task_map,trace = parse_trace(input_trace)
     print('task map from trace', task_map)
-    if task_map != {}:
-        #Build the translation table
-        print('Building translation table...')
-        translate_table = build_translation_table(task_map, memory_size, shared)
+    # if task_map != {}:
+    #     #Build the translation table
+    #     print('Building translation table...')
+    #     translate_table = build_translation_table(task_map, memory_size, shared)
+    #
+    #     #Use translation table to make physical trace
+    #     print('Building physical trace...')
+    #     phys_trace = translate_trace_file(translate_table, trace)
+    # else:
+    #     phys_trace = trace
 
-        #Use translation table to make physical trace
-        print('Building physical trace...')
-        phys_trace = translate_trace_file(translate_table, trace)
-    else:
-        phys_trace = trace
-
+    phys_trace = trace
     # Create cache from perameters
     print('Building Cache...')
     myCache = cache.cache(cache_size, block_size, mapping)
@@ -268,6 +269,8 @@ def generate_translation(task_map,memory_size, cache_size, block_size, mapping,
     print('Building Page Tables (one per task)...')
     page_tables = build_page_tables(task_map, memory_size, cache_size, block_size, mapping, page_size)
     print(page_tables)
+    for taskid in page_tables.keys():
+        print(taskid, page_tables[taskid].allowed_sets, page_tables[taskid].colors)
     # Run trace through cache
     print('Running trace...')
     if shared:
