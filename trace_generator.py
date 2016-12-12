@@ -109,6 +109,19 @@ def build_evil_element_list(task_map):
                 #print("tag_base: ",tag_base, "tag_offset",tag_offset)
     return element_list
 
+def build_virt_set_element_list(task_map, cache_size, block_size, mapping, memory_size):
+    element_list = []
+    taskid = random.choice(list(task_map.keys()))
+    num_instructions = random.choice(range(1,32))
+    addr = random.choice(range(memory_size))
+    for i in range(num_instructions):
+        element = []
+        element.append(taskid)
+        element.append(random.choice(rw_options))
+        element.append(addr+i)
+        element_list.append(element)
+    return element_list
+
 # Build a list of elements based on the current cache and tasks
 def build_set_element_list(task_map, cache_size, block_size, mapping, memory_size):
     element_list=[]
@@ -168,7 +181,8 @@ def build_opposite_element(element):
 def build_trace(length, task_map, trace_alg, cache_size, block_size, mapping, memory_size):
     trace_algorithm = { 'std':build_rand_element_list,
                         'evil':build_evil_element_list,
-                        'set':build_set_element_list}
+                        'set':build_set_element_list,
+                        'virt':build_virt_set_element_list}
     trace = []
     for i in range(length):
         element_list = trace_algorithm[trace_alg](task_map, cache_size, block_size, mapping, memory_size)
